@@ -15,6 +15,11 @@ limitations under the License.
 
 */
 
+#ifndef _WIN32
+#include <unistd.h>
+#include <sys/ioctl.h>
+#endif
+
 //
 // Various helper functions to render stuff on the screen
 //
@@ -35,10 +40,28 @@ limitations under the License.
 #define PRINTF_WRAP_CPROC(x)  #x
 #define PRINTF_WRAP(x) PRINTF_WRAP_CPROC(x)
 
+int32_t get_terminal_width()
+{
+#ifdef _WIN32
+	return CONSOLE_LINE_LEN;
+#else
+	struct winsize w;
+	int32_t res = CONSOLE_LINE_LEN;
+
+	if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != -1)
+	{
+		res = w.ws_col;
+	}
+
+	return res;
+#endif // _WIN32
+}
+
 void list_fields(bool verbose, bool markdown, bool names_only)
 {
 	uint32_t j, l, m;
 	int32_t k;
+	int32_t console_line_len = get_terminal_width();
 	vector<const filter_check_info*> fc_plugins;
 	sinsp::get_filtercheck_fields_info(fc_plugins);
 
@@ -64,7 +87,7 @@ void list_fields(bool verbose, bool markdown, bool names_only)
 			{
 				printf("\n----------------------\n");
 				printf("Field Class: %s\n\n", fci->m_name.c_str());
-				printf("%s\n\n", fci->m_desc.c_str());
+				printf("%s\n", fci->m_desc.c_str());
 			}
 		}
 
@@ -117,7 +140,7 @@ void list_fields(bool verbose, bool markdown, bool names_only)
 
 				for(l = 0; l < desclen; l++)
 				{
-					if(l % (CONSOLE_LINE_LEN - DESCRIPTION_TEXT_START) == 0 && l != 0)
+					if(l % (console_line_len - DESCRIPTION_TEXT_START) == 0 && l != 0)
 					{
 						printf("\n");
 
