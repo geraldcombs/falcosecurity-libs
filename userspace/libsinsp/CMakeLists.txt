@@ -201,8 +201,13 @@ set(SINSP_LIBRARIES
 	"${CARES_LIB}"
 	"${RE2_LIB}")
 
-add_dependencies(sinsp valijson)
-add_dependencies(sinsp re2)
+if(USE_BUNDLED_VALIJSON)
+	add_dependencies(sinsp valijson)
+endif()
+
+if(USE_BUNDLED_RE2)
+	add_dependencies(sinsp re2)
+endif()
 
 if(WITH_CHISEL AND USE_BUNDLED_LUAJIT)
 	add_dependencies(sinsp luajit)
