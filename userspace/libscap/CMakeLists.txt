@@ -219,6 +219,7 @@ get_target_property(scap_engine_bpf_link_libraries scap_engine_bpf LINK_LIBRARIE
 if (scap_engine_bpf_link_libraries)
 	list(APPEND scap_link_libraries ${scap_engine_bpf_link_libraries})
 endif()
+#get_target_property(scap_engine_kmod_link_libraries scap_engine_kmod LINK_LIBRARIES)
 get_target_property(scap_event_schema_link_libraries scap_event_schema LINK_LIBRARIES)
 if (scap_event_schema_link_libraries)
 	list(APPEND scap_link_libraries ${scap_event_schema_link_libraries})

@@ -41,7 +41,15 @@ set(LIBSCAP_LIBS "")
 list(APPEND LIBSCAP_LIBS
 	"${PROJECT_BINARY_DIR}/libscap/libscap.a"
 	"${PROJECT_BINARY_DIR}/libscap/libscap_engine_util.a"
+	"${PROJECT_BINARY_DIR}/libscap/libscap_error.a"
 	"${PROJECT_BINARY_DIR}/libscap/libscap_event_schema.a"
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	"${PROJECT_BINARY_DIR}/libscap/linux/libscap_platform.a"
+elseif(WIN32)
+	"${PROJECT_BINARY_DIR}/libscap/win32/libscap_platform.a"
+elseif(APPLE)
+	"${PROJECT_BINARY_DIR}/libscap/macos/libscap_platform.a"
+endif()
 	"${PROJECT_BINARY_DIR}/libscap/libdriver_event_schema.a"
 	"${PROJECT_BINARY_DIR}/libscap/engine/bpf/libscap_engine_bpf.a"
 	"${PROJECT_BINARY_DIR}/libscap/engine/gvisor/libscap_engine_gvisor.a"
