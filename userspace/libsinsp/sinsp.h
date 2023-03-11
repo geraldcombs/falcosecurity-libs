@@ -570,11 +570,19 @@ public:
 	sinsp_evt::param_fmt get_buffer_format();
 
 	/*!
-	  \brief Returns true if the current capture is offline
+	  \brief Returns true if the current capture is happening from a scap file
 	*/
 	inline bool is_capture()
 	{
 		return m_mode == SCAP_MODE_CAPTURE;
+	}
+
+	/*!
+	  \brief Returns true if the current capture is offline
+	*/
+	inline bool is_offline()
+	{
+		return is_capture() || m_mode == SCAP_MODE_TEST;
 	}
 
 	/*!
@@ -1043,7 +1051,6 @@ private:
 	// <m_input_fd>". Otherwise, reading from m_input_filename.
 	int m_input_fd;
 	std::string m_input_filename;
-	bool m_is_windows;
 	bool m_isdebug_enabled;
 	bool m_isfatfile_enabled;
 	bool m_isinternal_events_enabled;

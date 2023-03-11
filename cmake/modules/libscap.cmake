@@ -24,7 +24,14 @@ include_directories(${PROJECT_BINARY_DIR}/common)
 
 add_definitions(-DPLATFORM_NAME="${CMAKE_SYSTEM_NAME}")
 
-get_filename_component(DRIVER_CONFIG_DIR ${CMAKE_BINARY_DIR}/driver/src ABSOLUTE)
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	get_filename_component(DRIVER_CONFIG_DIR ${CMAKE_BINARY_DIR}/driver/src ABSOLUTE)
+else()
+	# This doesn't install all of the driver headers but seems to be sufficient for
+	# non-Linux platforms.
+	get_filename_component(DRIVER_CONFIG_DIR ${PROJECT_SOURCE_DIR}/driver ABSOLUTE)
+endif()
+
 get_filename_component(LIBSCAP_INCLUDE_DIR ${LIBSCAP_DIR}/userspace/libscap ABSOLUTE)
 set(LIBSCAP_INCLUDE_DIRS ${LIBSCAP_INCLUDE_DIR} ${DRIVER_CONFIG_DIR})
 
@@ -87,4 +94,5 @@ install(DIRECTORY "${PROJECT_BINARY_DIR}/common" DESTINATION "${CMAKE_INSTALL_IN
 install(DIRECTORY "${LIBSCAP_DIR}/userspace/plugin" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${LIBS_PACKAGE_NAME}/userspace"
 		COMPONENT "scap"
 		FILES_MATCHING PATTERN "*.h")
+install(FILES ${PROJECT_BINARY_DIR}/libscap/libscap.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endif()

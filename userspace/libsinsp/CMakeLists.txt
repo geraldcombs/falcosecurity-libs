@@ -204,8 +204,13 @@ set(SINSP_LIBRARIES
 	"${CARES_LIB}"
 	"${RE2_LIB}")
 
-add_dependencies(sinsp valijson)
-add_dependencies(sinsp re2)
+if(USE_BUNDLED_VALIJSON)
+	add_dependencies(sinsp valijson)
+endif()
+
+if(USE_BUNDLED_RE2)
+	add_dependencies(sinsp re2)
+endif()
 
 if(WITH_CHISEL)
 	add_dependencies(sinsp luajit)
@@ -307,3 +312,44 @@ option(BUILD_LIBSINSP_EXAMPLES "Build libsinsp examples" ON)
 if (BUILD_LIBSINSP_EXAMPLES)
 	add_subdirectory(examples)
 endif()
+
+# Build our pkg-config "Libs:" flags. For now, loop over SINSP_LIBRARIES. If
+# we ever start using pkg_search_module or pkg_check_modules in cmake/modules
+# we could add each module to our "Requires:" line instead. We might need to
+# expand this to use some of the techniques in
+# https://github.com/curl/curl/blob/curl-7_84_0/CMakeLists.txt#L1539
+set(SINSP_PKG_CONFIG_LIBS)
+set(SINSP_PKG_CONFIG_LIBDIRS "")
+foreach(sinsp_lib ${SINSP_LIBRARIES})
+	if(${sinsp_lib} MATCHES "^-")
+		# We have a flag. Pass it through unchanged.
+		list(APPEND SINSP_PKG_CONFIG_LIBS ${sinsp_lib})
+	elseif(${sinsp_lib} MATCHES "/")
+		# We have a path. Convert it to -L<dir> + -l<lib>.
+		get_filename_component(sinsp_lib_dir ${sinsp_lib} DIRECTORY)
+		list(APPEND SINSP_PKG_CONFIG_LIBDIRS -L${sinsp_lib_dir})
+		get_filename_component(sinsp_lib_base ${sinsp_lib} NAME_WE)
+		string(REGEX REPLACE "^lib" "" sinsp_lib_base ${sinsp_lib_base})
+		list(APPEND SINSP_PKG_CONFIG_LIBS -l${sinsp_lib_base})
+	elseif(${sinsp_lib} STREQUAL "scap")
+		# We require libscap.pc, so skip it.
+	else()
+		# Assume we have a plain library name. Prefix it with "-l".
+		list(APPEND SINSP_PKG_CONFIG_LIBS -l${sinsp_lib})
+	endif()
+endforeach()
+
+# Build our pkg-config "Cflags:" flags.
+set(SINSP_PKG_CONFIG_INCLUDES "")
+foreach(sinsp_include_directory ${LIBSINSP_INCLUDE_DIRS})
+	if(NOT sinsp_include_directory MATCHES "(^${PROJECT_SOURCE_DIR}|^${PROJECT_BINARY_DIR})")
+		list(APPEND SINSP_PKG_CONFIG_INCLUDES -I${sinsp_include_directory})
+	endif()
+endforeach()
+
+string(REPLACE ";" " " SINSP_PKG_CONFIG_LIBS "${SINSP_PKG_CONFIG_LIBS}")
+list(REMOVE_DUPLICATES SINSP_PKG_CONFIG_LIBDIRS)
+string(REPLACE ";" " " SINSP_PKG_CONFIG_LIBDIRS "${SINSP_PKG_CONFIG_LIBDIRS}")
+list(REMOVE_DUPLICATES SINSP_PKG_CONFIG_INCLUDES)
+string(REPLACE ";" " " SINSP_PKG_CONFIG_INCLUDES "${SINSP_PKG_CONFIG_INCLUDES}")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libsinsp.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libsinsp.pc @ONLY)

@@ -447,7 +447,7 @@ void sinsp_threadinfo::init(scap_threadinfo* pi)
 	set_cgroups(pi->cgroups, pi->cgroups_len);
 	m_root = pi->root;
 	ASSERT(m_inspector);
-	m_inspector->m_container_manager.resolve_container(this, !m_inspector->is_capture());
+	m_inspector->m_container_manager.resolve_container(this, !m_inspector->is_offline());
 
 	set_group(pi->gid);
 	set_user(pi->uid);
@@ -910,8 +910,7 @@ void sinsp_threadinfo::set_cwd(const char* cwd, uint32_t cwdlen)
 			(char*)tinfo->m_cwd.c_str(),
 			(uint32_t)tinfo->m_cwd.size(),
 			cwd,
-			cwdlen,
-			m_inspector->m_is_windows);
+			cwdlen);
 
 		tinfo->m_cwd = tpath;
 
