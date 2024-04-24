@@ -21,6 +21,7 @@ limitations under the License.
 #if !defined(MINIMAL_BUILD) && !defined(__EMSCRIPTEN__)
 #ifdef HAS_CAPTURE
 #include "container_engine/cri.h"
+#include "cri.hpp"
 #endif // HAS_CAPTURE
 #ifndef _WIN32
 #include "container_engine/docker/docker_linux.h"
