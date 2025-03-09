@@ -169,6 +169,7 @@ bool sinsp_filter_check_plugin::extract_nocache(sinsp_evt* evt,
 	efield.arg_present = m_arg_present;
 	efield.ftype = type;
 	efield.flist = m_info->m_fields[m_field_id].m_flags & EPF_IS_LIST;
+	efield.meta_select = SS_PLUGIN_METADATA_NONE;
 	if(!m_eplugin->extract_fields(evt, num_fields, &efield) || efield.res_len == 0) {
 		return false;
 	}

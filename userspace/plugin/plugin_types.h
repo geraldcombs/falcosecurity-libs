@@ -31,6 +31,8 @@ typedef uint32_t ss_plugin_bool;
 // The noncontinguous numbers are to maintain equality with underlying
 // falcosecurity libs types.
 typedef enum ss_plugin_field_type {
+	// A 32bit unsigned integer.
+	FTYPE_UINT32 = 7,
 	// A 64bit unsigned integer.
 	FTYPE_UINT64 = 8,
 	// A printable buffer of bytes, NULL terminated
@@ -128,6 +130,26 @@ typedef struct ss_plugin_byte_buffer {
 	const void* ptr;
 } ss_plugin_byte_buffer;
 
+// Optional metadata types that a plugin might support. For values other
+// than SS_PLUGIN_METADATA_NONE, res and res_len will be set in
+// ss_plugin_extract_field as described below.
+// 0x00000000 to 0x7fffffff are reserved for public use and 0x80000000
+// to 0xffffffff are reserved for private use.
+// If you want to add a new metadata type you can request a value in the public
+// range by opening a pull request at https://github.com/falcosecurity/libs/
+// or self-assign a private value.
+// DO NOT SELF-ASSIGN A VALUE IN THE PUBLIC RANGE.
+typedef enum ss_plugin_metadata_type {
+	// Return the actual value; we're not requesting metadata.
+	SS_PLUGIN_METADATA_NONE = 0,
+	// Return the Go- and Python-style zero-indexed start and end of the
+	// field's location in the event data as a uint32_t pair. {0,0} can be
+	// used by extractors to indicate that the field doesn't correspond
+	// to a location.
+	SS_PLUGIN_METADATA_SLICE = 1,
+	SS_PLUGIN_METADATA_PRIVATE_USE = 0x80000000,
+} ss_plugin_metadata_type;
+
 // Used in extract_fields functions below to receive a field/arg
 // pair and return an extracted value.
 // field_id: id of the field, as of its index in the list of
@@ -155,6 +177,10 @@ typedef struct ss_plugin_byte_buffer {
 // flist: whether the field can extract lists of values or not.
 //   Could be derived from the field name alone, but including it
 //   here can prevent a second lookup of field names.
+// meta_select: ss_plugin_metadata_type selector which can be used to extract
+//   information about a field instead of its value. If this is set to
+//   SS_PLUGIN_METADATA_NONE, ftype should be set normally. Otherwise it
+//   should be set according to the metadata you're trying to extract.
 // The following should be filled in by the extraction function:
 // - res: this union should be filled with a pointer to an array of values.
 //   The array represent the list of extracted values for this field from a given event.
@@ -190,6 +216,8 @@ typedef struct ss_plugin_extract_field {
 	ss_plugin_bool arg_present;
 	uint32_t ftype;
 	ss_plugin_bool flist;
+	uint32_t meta_select;
+	// XXX Should we add a meta_res as well? overloading res seems error-prone.
 } ss_plugin_extract_field;
 
 // Opaque a pointer to a state table. The falcosecurity libs define stateful
